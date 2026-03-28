@@ -230,19 +230,9 @@ RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw \
 
 ENV NODE_ENV=production
 
-# Security hardening: Run as non-root user
-# The node:24-bookworm image includes a 'node' user (uid 1000)
-# This reduces the attack surface by preventing container escape via root privileges
-USER node
+# Start as root so we can chown volume mounts (e.g. Railway `/data`), then drop to `node`.
+COPY --chmod=755 scripts/docker/gateway-entrypoint.sh /usr/local/bin/openclaw-gateway-entrypoint.sh
 
-# Start gateway server with default config.
-# Binds to loopback (127.0.0.1) by default for security.
-#
-# IMPORTANT: With Docker bridge networking (-p 18789:18789), loopback bind
-# makes the gateway unreachable from the host. Either:
-#   - Use --network host, OR
-#   - Override --bind to "lan" (0.0.0.0) and set auth credentials
-#
 # Built-in probe endpoints for container health checks:
 #   - GET /healthz (liveness) and GET /readyz (readiness)
 #   - aliases: /health and /ready
@@ -250,4 +240,6 @@ USER node
 # Set OPENCLAW_GATEWAY_TOKEN (and OPENCLAW_GATEWAY_PORT when not 18789).
 HEALTHCHECK --interval=3m --timeout=10s --start-period=120s --retries=3 \
   CMD node -e "const p=Number(process.env.OPENCLAW_GATEWAY_PORT||18789);fetch('http://127.0.0.1:'+p+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+ENTRYPOINT ["/usr/local/bin/openclaw-gateway-entrypoint.sh"]
+USER root
 CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]

@@ -268,7 +268,9 @@ See the [`ClawDock` Helper README](https://github.com/openclaw/openclaw/blob/mai
   </Accordion>
 
   <Accordion title="Power-user container options">
-    The default image is security-first and runs as non-root `node`. For a more
+    The gateway process runs as non-root `node`. The published image uses an
+    entrypoint that starts as root only to `chown` a mounted `/data` volume (root-owned
+    on many hosts), then drops to `node`. For a more
     full-featured container:
 
     1. **Persist `/home/node`**: `export OPENCLAW_HOME_VOLUME="openclaw_home"`

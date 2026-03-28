@@ -53,6 +53,10 @@ Attach a volume mounted at:
 
 - `/data`
 
+The container entrypoint adjusts ownership of `/data` so the `node` user can write
+`OPENCLAW_STATE_DIR` (for example `/data/.openclaw`). Without that step, a root-owned
+volume causes `EACCES` when saving config.
+
 ### Variables
 
 Set these variables on the service:
