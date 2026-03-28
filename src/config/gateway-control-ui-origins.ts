@@ -1,4 +1,5 @@
 import type { OpenClawConfig } from "./config.js";
+import type { GatewayBindMode } from "./types.gateway.js";
 import { DEFAULT_GATEWAY_PORT } from "./paths.js";
 
 export type GatewayNonLoopbackBindMode = "lan" | "tailnet" | "custom";
@@ -45,14 +46,23 @@ export function buildDefaultControlUiAllowedOrigins(params: {
 
 export function ensureControlUiAllowedOriginsForNonLoopbackBind(
   config: OpenClawConfig,
-  opts?: { defaultPort?: number; requireControlUiEnabled?: boolean },
+  opts?: {
+    defaultPort?: number;
+    requireControlUiEnabled?: boolean;
+    /**
+     * Effective bind (e.g. CLI `--bind lan`) when `gateway.bind` is not yet persisted.
+     * Required for hosted/container starts that pass `--bind` without seeding `openclaw.json`.
+     */
+    effectiveBind?: GatewayBindMode;
+  },
 ): {
   config: OpenClawConfig;
   seededOrigins: string[] | null;
   bind: GatewayNonLoopbackBindMode | null;
 } {
-  const bind = config.gateway?.bind;
-  if (!isGatewayNonLoopbackBindMode(bind)) {
+  const bindCandidate = opts?.effectiveBind ?? config.gateway?.bind;
+  const bind = isGatewayNonLoopbackBindMode(bindCandidate) ? bindCandidate : undefined;
+  if (!bind) {
     return { config, seededOrigins: null, bind: null };
   }
   if (opts?.requireControlUiEnabled && config.gateway?.controlUi?.enabled === false) {
