@@ -25,9 +25,15 @@ describe("docker build cache layout", () => {
     expect(scriptsCopyIndex === -1 || scriptsCopyIndex > installIndex).toBe(true);
   });
 
-  it("uses pnpm cache mounts in Dockerfiles that install repo dependencies", async () => {
+  it("avoids BuildKit cache mounts in the root Dockerfile (Railway requires id=s/<service-uuid>-…)", async () => {
+    const dockerfile = await readRepoFile("Dockerfile");
+    expect(dockerfile, "root Dockerfile should not use RUN --mount=type=cache (Railway BuildKit)").not.toMatch(
+      /--mount=type=cache,/,
+    );
+  });
+
+  it("uses pnpm cache mounts in auxiliary Dockerfiles that install repo dependencies", async () => {
     for (const path of [
-      "Dockerfile",
       "scripts/e2e/Dockerfile",
       "scripts/e2e/Dockerfile.qr-import",
       "scripts/docker/cleanup-smoke/Dockerfile",
@@ -44,7 +50,6 @@ describe("docker build cache layout", () => {
 
   it("uses apt cache mounts in Dockerfiles that install system packages", async () => {
     for (const path of [
-      "Dockerfile",
       "Dockerfile.sandbox",
       "Dockerfile.sandbox-browser",
       "Dockerfile.sandbox-common",
