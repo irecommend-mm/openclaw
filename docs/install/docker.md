@@ -270,7 +270,9 @@ See the [`ClawDock` Helper README](https://github.com/openclaw/openclaw/blob/mai
   <Accordion title="Power-user container options">
     The gateway process runs as non-root `node`. The published image uses an
     entrypoint that starts as root only to `chown` a mounted `/data` volume (root-owned
-    on many hosts), then drops to `node`. For a more
+    on many hosts), then drops to `node`. The image sets
+    `NODE_OPTIONS=--max-old-space-size=512` by default so small VMs are less likely to OOM;
+    override when you allocate more RAM (see `fly.toml` for a larger example). For a more
     full-featured container:
 
     1. **Persist `/home/node`**: `export OPENCLAW_HOME_VOLUME="openclaw_home"`

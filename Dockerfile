@@ -229,6 +229,9 @@ RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw \
  && chmod 755 /app/openclaw.mjs
 
 ENV NODE_ENV=production
+# Cap V8 heap so small PaaS plans (about 1 GiB RAM) are less likely to hit the Linux OOM killer
+# during startup. Override in your orchestrator for larger hosts (see fly.toml for a 2 GiB example).
+ENV NODE_OPTIONS="--max-old-space-size=512"
 
 # Start as root so we can chown volume mounts (e.g. Railway `/data`), then drop to `node`.
 COPY --chmod=755 scripts/docker/gateway-entrypoint.sh /usr/local/bin/openclaw-gateway-entrypoint.sh

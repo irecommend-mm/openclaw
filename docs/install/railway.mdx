@@ -76,6 +76,17 @@ If deploy succeeds but **Network → Healthcheck** fails, verify:
 - The container start command includes **`--bind lan`** (the default `Dockerfile` `CMD` includes this) so the process listens on `0.0.0.0`, not only loopback.
 - `OPENCLAW_GATEWAY_TOKEN` is set so the gateway can safely bind beyond loopback.
 
+### Memory (1 GiB and other small plans)
+
+The gateway loads a large TypeScript bundle and optional services; **about 2 GiB RAM** is comfortable for production. On **1 GiB** (or smaller) Railway plans you may see **out of memory** crashes.
+
+Do this first:
+
+- The published image sets **`NODE_OPTIONS=--max-old-space-size=512`** so the JS heap does not grow until Linux kills the container. If you override **`NODE_OPTIONS`** in Railway, include the same flag (merge your extra flags into one value).
+- Optionally set **`OPENCLAW_SKIP_CANVAS_HOST=1`** to turn off the separate Canvas file server and save some RAM if you do not need it.
+
+If it still OOMs, increase the service **memory limit** in Railway (Settings → Resources) or reduce load (fewer channels / lighter usage).
+
 ## Connect a channel
 
 Use the Control UI at `/openclaw` or run `openclaw onboard` via Railway's shell for channel setup instructions:
