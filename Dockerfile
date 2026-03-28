@@ -143,6 +143,8 @@ RUN apt-get update && \
 
 RUN chown node:node /app
 
+RUN mkdir -p /data && chown -R node:node /data && chmod 755 /data
+
 COPY --from=runtime-assets --chown=node:node /app/dist ./dist
 COPY --from=runtime-assets --chown=node:node /app/node_modules ./node_modules
 COPY --from=runtime-assets --chown=node:node /app/package.json .
